@@ -1,2 +1,2 @@
-defmodule Exkademlia do
+defmodule Kademlia do
 end

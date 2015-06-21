@@ -27,6 +27,10 @@ defmodule Exkademlia.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps do
-    []
+    [
+      {:hexate, "~> 0.5.0"},
+      {:exprotobuf, "~> 0.8.5"},
+      {:gpb, github: "tomas-abrahamsson/gpb", tag: "3.17.2"}
+    ]
   end
 end

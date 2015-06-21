@@ -1,0 +1,70 @@
+
+message PBNode {
+  required bytes Id = 1;
+
+  required uint32 Port = 2;
+
+  required bytes Endpoint = 3;
+}
+
+message PBHeader{
+  required PBNode Sender = 1;
+
+  required string NetworkId = 2;
+
+  required bytes MessageId = 3;
+}
+
+message PBPingRequest {
+  required PBHeader Header = 1;
+}
+
+message PBPingResponse {
+  required PBHeader Header = 1;
+}
+
+message PBFindNodeRequest {
+  required PBHeader Header = 1;
+
+  required bytes Target = 2;
+}
+
+message PBFindNodeResponse {
+  required PBHeader Header = 1;
+
+  repeated PBNode Nodes = 2;
+}
+
+message PBFindValueRequest {
+  required PBHeader Header = 1;
+
+  required bytes Key = 2;
+}
+
+message PBFindValueResponse {
+  required PBHeader Header = 1;
+
+  optional bytes Value = 2;
+
+  repeated PBNode Nodes = 3;
+}
+
+message PBStoreValueRequest {
+  required PBHeader Header = 1;
+
+  required bytes Key = 2;
+
+  required bytes Value = 3;
+}
+
+message PBStoreValueResponse {
+  required PBHeader Header = 1;
+
+  enum Status {
+    STORED = 0;
+    ERROR_NO_SPACE = 1;
+    ERROR_GENERIC = 2;
+  }
+
+  required Status Status = 2 [default = STORED];
+}
