@@ -1,3 +1,6 @@
-%{"exprotobuf": {:hex, :exprotobuf, "0.8.5"},
+%{"dialyxir": {:git, "git://github.com/jeremyjh/dialyxir.git", "e2e172184b782ee28e6fe9b69db2df5c4a39cbeb", []},
+  "exprotobuf": {:hex, :exprotobuf, "0.8.5"},
   "gpb": {:git, "git://github.com/tomas-abrahamsson/gpb.git", "cad0d21c8d1867dc7f2ce0f6792c998ffa52fa4b", [tag: "3.17.2"]},
-  "hexate": {:hex, :hexate, "0.5.1"}}
+  "hexate": {:hex, :hexate, "0.5.1"},
+  "inch_ex": {:hex, :inch_ex, "0.3.2"},
+  "poison": {:hex, :poison, "1.4.0"}}

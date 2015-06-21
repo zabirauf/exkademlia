@@ -30,7 +30,9 @@ defmodule Exkademlia.Mixfile do
     [
       {:hexate, "~> 0.5.0"},
       {:exprotobuf, "~> 0.8.5"},
-      {:gpb, github: "tomas-abrahamsson/gpb", tag: "3.17.2"}
+      {:gpb, github: "tomas-abrahamsson/gpb", tag: "3.17.2"},
+      {:inch_ex, only: :docs},
+      {:dialyxir, github: "jeremyjh/dialyxir"},
     ]
   end
 end
