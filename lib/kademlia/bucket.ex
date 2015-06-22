@@ -9,11 +9,13 @@ defmodule Kademlia.Bucket do
   @type t :: %Bucket{nodes: [Node.t], nodes_id_map: %{binary => boolean}}
   defstruct nodes: [], nodes_id_map: %{}
 
+  @bucket_size 20
+
   @doc """
   Create the bucket
   """
-  @spec create :: t
-  def create do
+  @spec new :: Bucket.t
+  def new do
     %Bucket{}
   end
 
@@ -21,20 +23,37 @@ defmodule Kademlia.Bucket do
   Does the `node` exists in `bucket`.
   `true` if it exists otherwise `false`
   """
-  @spec exists?(t, Node.t) :: boolean
+  @spec exists?(Bucket.t, Node.t) :: boolean
   def exists?(bucket, node) do
     Map.has_key?(bucket.nodes_id_map, node.id)
   end
 
   @doc """
+  Checks if the number of nodes in the `bucket` are maximum or not
+  `true` if the bucket is full else `false`
+  """
+  @spec full?(Bucket.t) :: boolean
+  def full?(bucket), do: length(bucket.nodes) == @bucket_size
+
+  @doc """
+  Gets the node and its distance to `target_node` tuple
+  """
+  @spec get_node_distance_pair(Bucket.t, Node.t) :: [{Node.t, Node.node_id}]
+  def get_node_distance_pair(bucket, target_node) do
+    Enum.map bucket.nodes, fn(node) ->
+      {node, Node.distance(node, target_node)}
+    end
+  end
+
+  @doc """
   Removes the `node` from the `bucket` if it exists
   """
-  @spec remove(t, Node.t) :: t
+  @spec remove(Bucket.t, Node.t) :: Bucket.t
   def remove(bucket, node) do
     remove(bucket, node, Map.has_key?(bucket.nodes_id_map, node.id))
   end
 
-  @spec remove(t, Node.t, boolean) :: t
+  @spec remove(Bucket.t, Node.t, boolean) :: Bucket.t
   defp remove(bucket, _node, false), do: bucket
   defp remove(bucket, node, true) do
     updated_bucket = %{bucket | nodes: (Enum.filter bucket.nodes, &(&1.id != node.id) )}
@@ -44,12 +63,12 @@ defmodule Kademlia.Bucket do
   @doc """
   Adds the `node` in the front of the list in `bucket`
   """
-  @spec add_to_front(t, Node.t) :: t
+  @spec add_to_front(Bucket.t, Node.t) :: Bucket.t
   def add_to_front(bucket, node) do
     add_to_front(bucket, node, Map.has_key?(bucket.nodes_id_map, node.id))
   end
 
-  @spec add_to_front(t, Node.t, boolean) :: t
+  @spec add_to_front(Bucket.t, Node.t, boolean) :: Bucket.t
   defp add_to_front(bucket, _node, true), do: bucket
   defp add_to_front(bucket, node, false) do
     updated_bucket = %{bucket | nodes: [node|bucket.nodes]}
@@ -59,7 +78,7 @@ defmodule Kademlia.Bucket do
   @doc """
   Removes the `node` from the `bucket` and then add it to the front
   """
-  @spec move_to_front(t, Node.t) :: t
+  @spec move_to_front(Bucket.t, Node.t) :: Bucket.t
   def move_to_front(bucket, node) do
     bucket
     |> remove(node)
