@@ -13,6 +13,14 @@ defmodule Kademlia.Node do
 
   @default_id_length 20 # If changed then change the typespec of node_id to be _ * (8*@default_id_length)
 
+  @doc"""
+  Creates a new Node with a random id
+  """
+  @spec new :: Node.t
+  def new(endpoint \\ nil, port \\ 0) do
+    %Node{id: create_rand_id, port: port, endpoint: endpoint}
+  end
+
   @doc """
   Create a random 20 byte id
   """
@@ -56,6 +64,6 @@ defmodule Kademlia.Node do
   @spec prefix_length(bitstring, non_neg_integer) :: non_neg_integer
   defp prefix_length(<< 0 :: 1, rest :: bitstring >>, acc), do: prefix_length(rest, acc+1)
   defp prefix_length(<< _ :: 1, _rest :: bitstring >>, acc), do: acc
-  defp prefix_length(<<>>, acc), do: acc
+  defp prefix_length(<<>>, acc), do: acc - 1
 
 end
