@@ -16,7 +16,7 @@ defmodule Kademlia.Bucket do
   """
   @spec new :: Bucket.t
   def new do
-    %Bucket{}
+    %Bucket{nodes: [], nodes_id_map: %{}}
   end
 
   @doc """
@@ -65,12 +65,13 @@ defmodule Kademlia.Bucket do
   """
   @spec add_to_front(Bucket.t, Node.t) :: Bucket.t
   def add_to_front(bucket, node) do
-    add_to_front(bucket, node, Map.has_key?(bucket.nodes_id_map, node.id))
+    add_to_front(bucket, node, Dict.has_key?(bucket.nodes_id_map, node.id), full?(bucket))
   end
 
-  @spec add_to_front(Bucket.t, Node.t, boolean) :: Bucket.t
-  defp add_to_front(bucket, _node, true), do: bucket
-  defp add_to_front(bucket, node, false) do
+  @spec add_to_front(Bucket.t, Node.t, boolean, boolean) :: Bucket.t
+  defp add_to_front(bucket, _node, _exists, true), do: bucket
+  defp add_to_front(bucket, _node, true, _full), do: bucket
+  defp add_to_front(bucket, node, false, _full) do
     updated_bucket = %{bucket | nodes: [node|bucket.nodes]}
     %{updated_bucket | nodes_id_map: Dict.put(updated_bucket.nodes_id_map, node.id, true)}
   end
