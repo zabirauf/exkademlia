@@ -7,6 +7,7 @@ defmodule Exkademlia.Mixfile do
      elixir: "~> 1.0",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     source_url: "http://github.com/zabirauf/exkademlia",
      deps: deps]
   end
 
@@ -33,6 +34,8 @@ defmodule Exkademlia.Mixfile do
       {:gpb, github: "tomas-abrahamsson/gpb", tag: "3.17.2"},
       {:inch_ex, only: :docs},
       {:dialyxir, github: "jeremyjh/dialyxir"},
+      {:earmark, "~> 0.1", only: :dev},
+      {:ex_doc, "~> 0.7", only: :dev},
     ]
   end
 end
