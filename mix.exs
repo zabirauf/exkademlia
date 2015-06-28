@@ -15,7 +15,7 @@ defmodule Exkademlia.Mixfile do
   #
   # Type `mix help compile.app` for more information
   def application do
-    [applications: [:logger]]
+    [applications: [:logger, :ranch, :poolboy]]
   end
 
   # Dependencies can be Hex packages:
@@ -32,6 +32,8 @@ defmodule Exkademlia.Mixfile do
       {:hexate, "~> 0.5.0"},
       {:exprotobuf, "~> 0.8.5"},
       {:gpb, github: "tomas-abrahamsson/gpb", tag: "3.17.2"},
+      {:ranch, "~> 1.0.0"},
+      {:poolboy, "~> 1.5.1"},
       {:inch_ex, only: :docs},
       {:dialyxir, github: "jeremyjh/dialyxir"},
       {:earmark, "~> 0.1", only: :dev},

@@ -5,4 +5,6 @@
   "gpb": {:git, "git://github.com/tomas-abrahamsson/gpb.git", "cad0d21c8d1867dc7f2ce0f6792c998ffa52fa4b", [tag: "3.17.2"]},
   "hexate": {:hex, :hexate, "0.5.1"},
   "inch_ex": {:hex, :inch_ex, "0.3.2"},
-  "poison": {:hex, :poison, "1.4.0"}}
+  "poison": {:hex, :poison, "1.4.0"},
+  "poolboy": {:hex, :poolboy, "1.5.1"},
+  "ranch": {:hex, :ranch, "1.0.0"}}
