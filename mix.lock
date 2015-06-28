@@ -1,5 +1,6 @@
 %{"dialyxir": {:git, "git://github.com/jeremyjh/dialyxir.git", "e2e172184b782ee28e6fe9b69db2df5c4a39cbeb", []},
   "earmark": {:hex, :earmark, "0.1.17"},
+  "elixir_socket": {:git, "git://github.com/meh/elixir-socket.git", "b943c8f382aad03faea6bdadbd8d07239bc02886", []},
   "ex_doc": {:hex, :ex_doc, "0.7.3"},
   "exprotobuf": {:hex, :exprotobuf, "0.8.5"},
   "gpb": {:git, "git://github.com/tomas-abrahamsson/gpb.git", "cad0d21c8d1867dc7f2ce0f6792c998ffa52fa4b", [tag: "3.17.2"]},

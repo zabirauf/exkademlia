@@ -38,6 +38,7 @@ defmodule Exkademlia.Mixfile do
       {:dialyxir, github: "jeremyjh/dialyxir"},
       {:earmark, "~> 0.1", only: :dev},
       {:ex_doc, "~> 0.7", only: :dev},
+      {:elixir_socket, github: "meh/elixir-socket", app: false},
     ]
   end
 end

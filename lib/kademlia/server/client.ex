@@ -1,20 +1,23 @@
 defmodule Kademlia.Server.Client do
   @moduledoc """
-  The client behavior that should be implemented for different server implementations
+  The client behavior that should be implemented for different server implementations.
+  This is an asyn client
   """
   use Behaviour
-  alias Kademlia.Server.Contract, as: Contract
+
+  @doc "Start"
+  defcallback start_link(node :: Kademlia.Node.t, sender :: Kademlia.Node.t, network_id :: String.t, opts :: Keyword.t) :: {:ok, any} | {:error, any}
 
   @doc "Ping the node"
-  defcallback ping(request :: Contract.PingRequest.t) :: Contract.PingResponse.t
+  defcallback ping(client :: pid) :: pid
 
   @doc "Find a node in the network. The response should never include the node being contacted"
-  defcallback find_node(request :: Contract.FindNodeRequest.t) :: Contract.FindNodeResponse.t
+  defcallback find_node(client :: pid, target :: Kademlia.Node.node_id) :: pid
 
   @doc "Find a value in the network"
-  defcallback find_value(request :: Contract.FindValueRequest.t) :: Contract.FindValueResponse.t
+  defcallback find_value(client :: pid, key :: term) :: pid
 
   @doc "Store a value in the network"
-  defcallback store_value(request :: Contract.StoreValueRequest.t) :: Contract.StoreValueResponse.t
+  defcallback store_value(client :: pid, key :: term, value :: binary) :: pid
 
 end

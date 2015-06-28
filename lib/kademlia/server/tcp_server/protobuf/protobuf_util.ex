@@ -8,7 +8,7 @@ defmodule Kademlia.Server.TcpServer.Protobuf.ProtobufUtil do
   # Encoding functions
 
   def encode(%Contract.Header{sender: sender, network_id: network_id, message_id: message_id}) do
-    PB.PBHeader.new(Sender: sender, NetworkId: network_id, MessageId: message_id)
+    PB.PBHeader.new(Sender: encode(sender), NetworkId: network_id, MessageId: message_id)
   end
 
   def encode(%Kademlia.Node{id: id, port: port, endpoint: endpoint}) do
@@ -58,7 +58,7 @@ defmodule Kademlia.Server.TcpServer.Protobuf.ProtobufUtil do
   # Decoding functions
 
   def decode(%PB.PBHeader{Sender: sender, NetworkId: network_id, MessageId: message_id}) do
-    %Contract.Header{sender: sender, network_id: network_id, message_id: message_id}
+    %Contract.Header{sender: decode(sender), network_id: network_id, message_id: message_id}
   end
 
   def decode(%PB.PBNode{Id: id, Port: port, Endpoint: endpoint}) do
