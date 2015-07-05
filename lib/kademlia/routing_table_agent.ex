@@ -12,6 +12,14 @@ defmodule Kademlia.RoutingTableAgent do
   end
 
   @doc """
+  Get routing table
+  """
+  @spec get() :: RoutingTable.t
+  def get() do
+    Agent.get __MODULE__, &(&1)
+  end
+
+  @doc """
   Update the routing table with `node`
   """
   @spec update(Node.t) :: :ok
@@ -28,6 +36,16 @@ defmodule Kademlia.RoutingTableAgent do
   def find_closest_node(node, count) do
     Agent.get __MODULE__, fn(rtable) ->
       RoutingTable.find_closest_node(rtable, node, count)
+    end
+  end
+
+  @doc """
+  Find the `count` closes nodes to `key`
+  """
+  @spec find_closest(Node.node_id, pos_integer) :: RoutingTable.closest_nodes_list
+  def find_closest(key, count) do
+    Agent.get __MODULE__, fn(rtable) ->
+      RoutingTable.find_closest(rtable, key, count)
     end
   end
 

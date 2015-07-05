@@ -2,6 +2,8 @@ defmodule Kademlia.Server.TcpServer.Protobuf.ProtobufUtil do
   @moduledoc """
   Utility functions to encode and decode between protobuf entities and local entities
   """
+
+  require Logger
   alias Kademlia.Server.Contract, as: Contract
   alias Kademlia.Server.TcpServer.Protobuf, as: PB
 
@@ -58,14 +60,17 @@ defmodule Kademlia.Server.TcpServer.Protobuf.ProtobufUtil do
   # Decoding functions
 
   def decode(%PB.PBHeader{Sender: sender, NetworkId: network_id, MessageId: message_id}) do
+    Logger.debug "Decode %PBPingHeader{}"
     %Contract.Header{sender: decode(sender), network_id: network_id, message_id: message_id}
   end
 
   def decode(%PB.PBNode{Id: id, Port: port, Endpoint: endpoint}) do
+    Logger.debug "Decode %PBNode{}"
     %Kademlia.Node{id: id, port: port, endpoint: endpoint}
   end
 
   def decode(%PB.PBPingRequest{Header: header}) do
+    Logger.debug "Decode %PBPingRequest{}: #{inspect(header)}"
     %Contract.PingRequest{header: decode(header)}
   end
 

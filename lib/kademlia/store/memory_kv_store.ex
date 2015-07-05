@@ -19,5 +19,5 @@ defmodule Kademlia.Store.KVStore.MemoryKVStore do
   @moduledoc """
   Memory key value sorage using HashDict
   """
-  def create(), do: %HashDict{}
+  def new(), do: %HashDict{}
 end

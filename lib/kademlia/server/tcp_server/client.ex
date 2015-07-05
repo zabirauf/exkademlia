@@ -3,6 +3,8 @@ defmodule Kademlia.Server.TcpServer.Client do
 
   use GenServer
 
+  require Logger
+
   import Kademlia.Node
   alias Kademlia.Server.TcpServer.Protobuf.ProtobufUtil, as: PBUtil
   alias Kademlia.Server.TcpServer.Protobuf, as: PB
@@ -10,11 +12,19 @@ defmodule Kademlia.Server.TcpServer.Client do
 
   @default_timeout 6000
 
+  # This should be in sync with the inverted map in TcpServer.KademliaProtocol
+  @request_module_to_prefix_map %{
+    "Elixir.Kademlia.Server.TcpServer.Protobuf.PBPingRequest":       <<10>>,
+    "Elixir.Kademlia.Server.TcpServer.Protobuf.PBFindNodeRequest":   <<20>>,
+    "Elixir.Kademlia.Server.TcpServer.Protobuf.PBFindValueRequest":  <<30>>,
+    "Elixir.Kademlia.Server.TcpServer.Protobuf.PBStoreValueRequest": <<40>>,
+  }
+
   # The helper functions to be called
 
   @doc "Start"
-  def start_link(node, sender, network_id, opts) do
-    GenServer.start_link(__MODULE__, {node, sender, network_id, opts})
+  def start_link(name, node, sender, network_id, opts) do
+    GenServer.start_link(__MODULE__, {node, sender, network_id, opts}, [name: name])
   end
 
   @doc "Ping the node"
@@ -34,42 +44,59 @@ defmodule Kademlia.Server.TcpServer.Client do
 
   @doc "Store a value in the network"
   def store_value(client, key, value) do
-    GenServer.call(client, {:store_valye, key, value}, :infinity)
+    GenServer.call(client, {:store_value, key, value}, :infinity)
   end
 
   # Gen server callbacks
 
   def init({node, sender, network_id, opts}) do
-    socket = Socket.connect! node.endpoint, node.port, packet: :line
+    socket = Socket.TCP.connect! node.endpoint, node.port, packet: :raw
     {:ok, {node, sender, network_id, socket, opts}}
   end
 
+  @spec handle_call(:ping, pid, {Node.t, Node.t, String.t, any, [term]}) :: any
   def handle_call(:ping, _from, {_node, sender, network_id, socket, opts} = state) do
     %Contract.PingRequest{header: create_header(sender, network_id)}
-    |> send_req_and_get_resp(socket, opts, state, PB.PBPingResponse)
+    |> send_req_and_get_resp(socket, opts, state, PB.PBPingResponse, PB.PBPingRequest)
   end
 
+  @spec handle_call({:find_node, Node.t}, pid, {Node.t, Node.t, String.t, any, [term]}) :: any
   def handle_call({:find_node, target}, _from, {_node, sender, network_id, socket, opts} = state) do
     %Contract.FindNodeRequest{header: create_header(sender, network_id), target: target}
-    |> send_req_and_get_resp(socket, opts, state, PB.PBFindNodeResponse)
+    |> send_req_and_get_resp(socket, opts, state, PB.PBFindNodeResponse, PB.PBFindNodeRequest)
   end
 
+  @spec handle_call({:find_value, Node.node_id}, pid, {Node.t, Node.t, String.t, any, [term]}) :: any
   def handle_call({:find_value, key}, _from, {_node, sender, network_id, socket, opts} = state) do
     %Contract.FindValueRequest{header: create_header(sender, network_id), key: key}
-    |> send_req_and_get_resp(socket, opts, state, PB.PBFindValueResponse)
+    |> send_req_and_get_resp(socket, opts, state, PB.PBFindValueResponse, PB.PBFindValueRequest)
   end
 
+  @spec handle_call({:store_value, Node.node_id, binary}, pid, {Node.t, Node.t, String.t, any, [term]}) :: any
   def handle_call({:store_value, key, value}, _from, {_node, sender, network_id, socket, opts} = state) do
     %Contract.StoreValueRequest{header: create_header(sender, network_id), key: key, value: value}
-    |> send_req_and_get_resp(socket, opts, state, PB.PBStoreValueResponse)
+    |> send_req_and_get_resp(socket, opts, state, PB.PBStoreValueResponse, PB.PBStoreValueRequest)
   end
 
-  defp send_req_and_get_resp(req, socket, opts, state, decoding_module) do
-    encoded = PBUtil.encode(req)
+  @spec send_req_and_get_resp(any, any, [term], any, atom, atom) :: any
+  defp send_req_and_get_resp(req, socket, opts, state, decoding_module, encoding_module) do
+
+    Logger.debug "TcpServer.Client.send_req_and_get_resp: Request #{inspect(req)}"
+
+    # Prefixing the module prefix number so that at server side it knows the type of request
+    prefix = Dict.get(@request_module_to_prefix_map, encoding_module)
+    encoded =  prefix <> PBUtil.encode(req)
+
+    Logger.debug "TcpServer.Client.send_req_and_get_resp: Encoded Request #{inspect(encoded)}"
+
     socket |> Socket.Stream.send!(encoded)
 
     socket
     |> Socket.Stream.recv(timeout: opts[:timeout] || @default_timeout)
+    |> (fn(resp) ->
+          Logger.debug "TcpServer.Client.send_req_and_get_resp: Encoded Response #{inspect(resp)}"
+          resp
+       end).()
     |> process_resp(decoding_module, state)
   end
 

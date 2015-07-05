@@ -25,6 +25,7 @@ defmodule Kademlia.Store.KVStoreAgent do
   """
   @spec put(key, value) :: :ok
   def put(key, value) do
+    Logger.debug "KVStoreAgent.put #{inspect(key)}"
     Agent.update __MODULE__, fn(kvstore) ->
       case KVStore.put(kvstore, key, value) do
         {:ok, kvs} ->
@@ -41,6 +42,7 @@ defmodule Kademlia.Store.KVStoreAgent do
   """
   @spec get(key) :: on_get
   def get(key) do
+    Logger.debug "KVStoreAgent.get #{inspect(key)}"
     Agent.get __MODULE__, fn(kvstore) ->
       KVStore.get(kvstore, key)
     end
@@ -51,6 +53,7 @@ defmodule Kademlia.Store.KVStoreAgent do
   """
   @spec has_key?(key) :: boolean
   def has_key?(key) do
+    Logger.debug "KVStoreAgent.has_key? #{inspect(key)}"
     Agent.get __MODULE__, fn(kvstore) ->
       KVStore.has_key?(kvstore, key)
     end
@@ -61,6 +64,7 @@ defmodule Kademlia.Store.KVStoreAgent do
   """
   @spec delete(key) :: :ok
   def delete(key) do
+    Logger.debug "KVStoreAgent.delete #{inspect(key)}"
     Agent.update __MODULE__, fn(kvstore) ->
       case KVStore.delete(kvstore, key) do
         {:ok, kvs} ->

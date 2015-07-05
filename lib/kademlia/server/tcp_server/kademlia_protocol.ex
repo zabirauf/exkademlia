@@ -15,13 +15,19 @@ defmodule Kademlia.Server.TcpServer.KademliaProtocol do
   alias Kademlia.Node, as: Node
 
   @request_pb_modules [
-    PB.PBNode,
-    PB.PBHeader,
     PB.PBPingRequest,
     PB.PBFindNodeRequest,
     PB.PBFindValueRequest,
-    PB.PBStoreValueRequest
+    PB.PBStoreValueRequest,
   ]
+
+  # Should match the inverted of map in TcpServer.Client
+  @request_prefix_to_module_map %{
+    <<10>> => PB.PBPingRequest,
+    <<20>> => PB.PBFindNodeRequest,
+    <<30>> => PB.PBFindValueRequest,
+    <<40>> => PB.PBStoreValueRequest,
+  }
 
   @default_closes_node_count 10
 
@@ -31,7 +37,7 @@ defmodule Kademlia.Server.TcpServer.KademliaProtocol do
   """
   def start_link(ref, socket, transport, opts) do
     Logger.debug "Started"
-    pid = spawn_link(__MODULE__, :init, [ref, socket, transport, opts])
+    pid = spawn_link(__MODULE__, :listen, [ref, socket, transport, opts])
     {:ok, pid}
   end
 
@@ -47,10 +53,11 @@ defmodule Kademlia.Server.TcpServer.KademliaProtocol do
   def server_loop(socket, transport, opts) do
     case transport.recv(socket, 0, -1) do
       {:ok, data} ->
+        Logger.debug "KademliaProtocol TCP Server.server_loop: #{inspect(data)}"
         handle_message_and_send_response(socket, transport, opts, data)
         server_loop(socket, transport, opts)
       x ->
-        Logger.debug x
+        Logger.debug "KademliaProtocol TCP Server.server_loop: #{inspect(x)}"
         :ok = transport.close(socket)
     end
   end
@@ -60,7 +67,10 @@ defmodule Kademlia.Server.TcpServer.KademliaProtocol do
   """
   defp handle_message_and_send_response(socket, transport, opts, msg) do
     resp = handle_message(msg, opts[:node], opts[:network_id])
+    Logger.debug "handle_message_and_send_response: #{inspect(resp)}"
     encoded_resp = PBUtil.encode(resp)
+
+    Logger.debug "handle_message_and_send_response: #{inspect(encoded_resp)}"
     transport.send(socket, encoded_resp)
   end
 
@@ -70,17 +80,21 @@ defmodule Kademlia.Server.TcpServer.KademliaProtocol do
   Handle the binary message, decode it and process it.
   """
   @spec handle_message(binary, Node.t, String.t) :: any
-  defp handle_message(msg, node, network_id) when is_binary(msg) do
-    case decode_pb_request(msg) do
+  defp handle_message(<<msg_type :: size(8), msg :: binary>>, node, network_id) when is_binary(msg) do
+    decoding_module = Dict.get(@request_prefix_to_module_map, <<msg_type>>)
+    Logger.debug "TcpServer.KademliaProtocol.handle_message/3: Decoding module is #{inspect(decoding_module)}, for key #{inspect(msg_type)} in #{inspect(@request_prefix_to_module_map)}"
+    case decode_pb_request(decoding_module, msg) do
       :error ->
         nil
       decoded_message ->
+        Logger.debug "Handle_message: binary: #{inspect(decoded_message)}"
         handle_message(decoded_message, node, network_id)
     end
   end
 
   @spec handle_message(Contract.PingRequest.t, Node.t, String.t) :: Contract.PingResponse.t
   defp handle_message(%Contract.PingRequest{header: header}, node, network_id) do
+                                                                      Logger.debug "Handle PingRequest"
     {:ok, _pid} = Task.start fn ->
       RoutingTableAgent.update(header.sender)
     end
@@ -96,6 +110,9 @@ defmodule Kademlia.Server.TcpServer.KademliaProtocol do
 
   @spec handle_message(Contract.FindValueRequest.t, Node.t, String.t) :: Contract.FindValueResponse.t
   defp handle_message(%Contract.FindValueRequest{header: _header, key: key}, node, network_id) do
+
+    Logger.debug "Handle FindValueRequest"
+
     case KVStoreAgent.get(key) do
       {:ok, value} ->
         %Contract.FindValueResponse{
@@ -104,38 +121,37 @@ defmodule Kademlia.Server.TcpServer.KademliaProtocol do
         }
 
       {:error, :not_found} ->
+        # TODO: FIX: The find_closest_node second argument takes Node. See if we should change it to key?
         %Contract.FindValueResponse{
           header: create_header(node, network_id),
-          nodes: RoutingTableAgent.find_closest_node(key, @default_closes_node_count)
+          nodes: RoutingTableAgent.find_closest(key, @default_closes_node_count)
         }
     end
   end
 
   @spec handle_message(Contract.StoreValueRequest.t, Node.t, String.t) :: Contract.StoreValueResponse.t
   defp handle_message(%Contract.StoreValueRequest{header: _header, key: key, value: value}, node, network_id) do
+
+    Logger.debug "Handle StoreValueRequest"
     case KVStoreAgent.put(key, value) do
       :ok ->
-        %Contract.StoreValueResponse{header: create_header(node, network_id), status: 0}
+        %Contract.StoreValueResponse{header: create_header(node, network_id), status: :STORED}
       _ ->
-        %Contract.StoreValueResponse{header: create_header(node, network_id), status: 2}
+        %Contract.StoreValueResponse{header: create_header(node, network_id), status: :ERROR_GENERIC}
     end
   end
 
-  @spec decode_pb_request(binary) :: %{} | :error
-  defp decode_pb_request(bin) when is_binary(bin) do
-    decode_pb_request(bin, @request_pb_modules)
-  end
-
-  @spec decode_pb_request(binary, [any]) :: %{} | :error
-  defp decode_pb_request(bin, [h|t]) when is_binary(bin) do
+  @spec decode_pb_request(atom, binary) :: %{} | :error
+  defp decode_pb_request(decoding_module, bin) when is_binary(bin) do
     try do
-      h.decode(bin) |> PBUtil.decode
+      Logger.debug "Decoding #{inspect(decoding_module)}"
+      decoding_module.decode(bin) |> PBUtil.decode
     rescue
-      _e -> decode_pb_request(bin, t)
+      e ->
+        Logger.debug "Decoding error #{e}"
+        :error
     end
   end
-
-  defp decode_pb_request(bin, []) when is_binary(bin), do: :error
 
   @doc """
   Create the header for this node
