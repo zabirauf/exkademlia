@@ -7,6 +7,9 @@ defmodule Kademlia.Server.TcpServer.Protobuf.ProtobufUtil do
   alias Kademlia.Server.Contract, as: Contract
   alias Kademlia.Server.TcpServer.Protobuf, as: PB
 
+  # TODO: Create a macro that helps in creating the following decoding and encoding functions
+  #       Looks like a good candidate for macro
+
   # Encoding functions
 
   def encode(%Contract.Header{sender: sender, network_id: network_id, message_id: message_id}) do

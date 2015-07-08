@@ -6,7 +6,7 @@ defmodule Kademlia.Server.Client do
   use Behaviour
 
   @doc "Start"
-  defcallback start_link(name :: String.t, node :: Kademlia.Node.t, sender :: Kademlia.Node.t, network_id :: String.t, opts :: Keyword.t) :: {:ok, any} | {:error, any}
+  defcallback start_link(node :: Kademlia.Node.t, sender :: Kademlia.Node.t, network_id :: String.t, opts :: Keyword.t) :: {:ok, any} | {:error, any}
 
   @doc "Ping the node"
   defcallback ping(client :: pid) :: pid

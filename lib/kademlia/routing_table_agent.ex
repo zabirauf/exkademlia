@@ -32,10 +32,10 @@ defmodule Kademlia.RoutingTableAgent do
   @doc """
   Find `count` closest nodes to `node`
   """
-  @spec find_closest_node(Node.t, pos_integer) :: RoutingTable.closest_nodes_list
+  @spec find_closest_node(Node.node_id, pos_integer) :: RoutingTable.closest_nodes_list
   def find_closest_node(node, count) do
     Agent.get __MODULE__, fn(rtable) ->
-      RoutingTable.find_closest_node(rtable, node, count)
+      RoutingTable.find_closest(rtable, node, count)
     end
   end
 
