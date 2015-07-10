@@ -50,7 +50,7 @@ defmodule Kademlia.Node do
 
     id_tuple
     |> Enum.map(fn {bin1, bin2} ->
-      bin1 ^^^ bin2
+      :erlang.bxor(bin1, bin2)
     end)
     |> :binary.list_to_bin
   end
