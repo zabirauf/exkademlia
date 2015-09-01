@@ -1,10 +1,10 @@
-
+ 
 message PBNode {
   required bytes Id = 1;
 
   required uint32 Port = 2;
 
-  required bytes Endpoint = 3;
+  required string Endpoint = 3;
 }
 
 message PBHeader{

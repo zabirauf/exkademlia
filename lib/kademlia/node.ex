@@ -17,7 +17,7 @@ defmodule Kademlia.Node do
   Creates a new Node with a random id
   """
   @spec new :: Node.t
-  def new(endpoint \\ nil, port \\ 0) do
+  def new(endpoint \\ "", port \\ 0) do
     %Node{id: create_rand_id, port: port, endpoint: endpoint}
   end
 

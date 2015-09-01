@@ -79,16 +79,38 @@ defmodule Kademlia.RoutingTable do
     |> Enum.take(count)
   end
 
+  @doc """
+  Finds the closest node the the `id` upto `count`
+  """
+  @spec find_closest(RoutingTable.t, Node.node_id, pos_integer) :: closest_nodes_list
+  def find_closest(rtable, id, count) do
+    node = %Node{id: id}
+    find_closest_node(rtable, node, count)
+  end
+
+  @doc """
+  Add neighbour nodes to the list upto `count`
+  It will switch between neighbour on the left and then on the right
+  """
   @spec add_neighbour_nodes(closest_nodes_list, RoutingTable.t, Node.t, pos_integer, non_neg_integer, pos_integer) :: closest_nodes_list
-  defp add_neighbour_nodes(result, rtable, node, count, bucket_number, diff_num) when length(result) < count do
-    result
-    |> add_nodes_to_list(rtable, node, bucket_number+diff_num)
-    |> add_nodes_to_list(rtable, node, bucket_number-diff_num)
-    |> add_neighbour_nodes(rtable, node, count, bucket_number, diff_num+1)
+  defp add_neighbour_nodes(result, rtable, node, count, bucket_number, diff_num) when length(result) < count  do
+    if ((bucket_number-diff_num) >= 0 || (bucket_number+diff_num) < @k_buckets) do
+      result
+      |> add_nodes_to_list(rtable, node, bucket_number+diff_num)
+      |> add_nodes_to_list(rtable, node, bucket_number-diff_num)
+      |> add_neighbour_nodes(rtable, node, count, bucket_number, diff_num+1)
+    else
+      result
+    end
   end
 
   defp add_neighbour_nodes(result, _rtable, _node, _count, _bucket_number, _diff_num), do: result
 
+  @doc """
+  It add the nodes distance pair to list
+    1. Get node distance of nodes with `node` from bucket `bucket_number`
+    2. Add the nodes distance pair to `result`
+  """
   @spec add_nodes_to_list(closest_nodes_list, RoutingTable.t, Node.t, non_neg_integer) :: closest_nodes_list
   defp add_nodes_to_list(result, rtable, node, bucket_number) when bucket_number >= 0 and bucket_number < @k_buckets do
     distance_pair = Bucket.get_node_distance_pair(rtable.buckets[bucket_number], node) 
